@@ -48,26 +48,30 @@ if st.session_state.get('signed_in'):
             realm_id = str(uuid.uuid4())
 
             realm_data = {
-    "id": realm_id,
-    "user_id": st.session_state['user_id'],
-    "realm_type": realm_type,
-    "traits": trait_dict,  # native dict
-    "realm_state": {"starting_zone": "village", "npc": []}  # native dict
-}
+                "id": realm_id,
+                "user_id": st.session_state['user_id'],
+                "realm_type": realm_type,
+                "traits": trait_dict,
+                "realm_state": {"starting_zone": "village", "npc": []}
+            }
 
+            # ✅ Safe call
             result = insert_realm(realm_data)
 
-if "data" in result and isinstance(result["data"], list) and result["data"]:
-    st.success("🎉 Realm created successfully!")
-    st.json(result["data"][0])
-else:
-    st.error("Something went wrong creating the realm.")
-    
-    # Always show full debug
-    debug = result.get("debug", {})
-    st.subheader("🔍 Debug Info")
-    st.code(f"Status: {debug.get('status')}", language="text")
-    st.text("Payload sent:")
-    st.json(debug.get("payload"))
-    st.text("Raw Response:")
-    st.code(debug.get("raw"), language="json")
+            # ✅ Show debug always
+            debug = result.get("debug", {})
+            status = debug.get("status", "Unknown")
+            payload = debug.get("payload", {})
+            raw = debug.get("raw", str(result))
+
+            if isinstance(result.get("data"), list) and result["data"]:
+                st.success("🎉 Realm created successfully!")
+                st.json(result["data"][0])
+            else:
+                st.error("Something went wrong creating the realm.")
+                st.subheader("🔍 Debug Info")
+                st.code(f"Status: {status}", language="text")
+                st.text("Payload sent:")
+                st.json(payload)
+                st.text("Raw Response:")
+                st.code(raw, language="json")

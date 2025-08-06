@@ -2,7 +2,7 @@ import httpx
 import os
 
 SUPABASE_URL = "https://pyrhbcnriiavwtkedyby.supabase.co"
-SUPABASE_API_KEY = os.getenv("SUPABASE_API_KEY") or "YOUR_SERVICE_ROLE_KEY_HERE"
+SUPABASE_API_KEY = os.getenv("SUPABASE_API_KEY") or "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5cmhiY25yaWlhdnd0a2VkeWJ5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDQ1MDM5OCwiZXhwIjoyMDcwMDI2Mzk4fQ.t3rT6XJse6mqHiXldtbBqm8lq6omf4dDjIpYzzikuhs"
 
 HEADERS = {
     "apikey": SUPABASE_API_KEY,

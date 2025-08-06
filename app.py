@@ -65,13 +65,13 @@ if st.session_state.get('signed_in'):
             raw = debug.get("raw", str(result))
 
             if result.get("debug", {}).get("status") == 201:
-    st.success("🎉 Realm created successfully!")
-    st.json(result.get("debug", {}).get("payload"))
-else:
-    st.error("Something went wrong creating the realm.")
-    st.subheader("🔍 Debug Info")
-    st.code(f"Status: {status}", language="text")
-    st.text("Payload sent:")
-    st.json(payload)
-    st.text("Raw Response:")
-    st.code(raw, language="json")
+					st.success("🎉 Realm created successfully!")
+					st.json(result.get("debug", {}).get("payload"))
+				else:
+					st.error("Something went wrong creating the realm.")
+					st.subheader("🔍 Debug Info")
+					st.code(f"Status: {status}", language="text")
+					st.text("Payload sent:")
+					st.json(payload)
+					st.text("Raw Response:")
+					st.code(raw, language="json")

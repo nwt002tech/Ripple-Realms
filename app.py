@@ -6,11 +6,6 @@ from dashboard import show_dashboard
 st.set_page_config(page_title="Ripple Realms", layout="centered")
 st.title("🌍 Ripple Realms")
 
-# ---------------------------
-# Login / Signup
-# ---------------------------
-st.subheader("Login or Sign Up")
-
 email = st.text_input("Enter your email")
 display_name = st.text_input("Choose a display name")
 
@@ -27,14 +22,13 @@ if st.button("Start Game"):
             result = insert_user(user_id, email, display_name)
             st.success("Account created!")
 
-        st.session_state['user_id'] = user_id
-        st.session_state['display_name'] = display_name
-        st.session_state['signed_in'] = True
-        st.session_state['realm_shown'] = False
+        st.session_state.update({
+            'user_id': user_id,
+            'display_name': display_name,
+            'signed_in': True,
+            'realm_shown': False
+        })
 
-# ---------------------------
-# Realm Creation
-# ---------------------------
 if st.session_state.get('signed_in'):
     if not st.session_state.get('realm_shown'):
         show_dashboard(st.session_state["user_id"])
@@ -57,25 +51,14 @@ if st.session_state.get('signed_in'):
                 "user_id": st.session_state['user_id'],
                 "realm_type": realm_type,
                 "traits": trait_dict,
-                "realm_state": {"starting_zone": "village", "npc": []}
+                "realm_state": {"zone": "village", "npc": [], "quests": []}
             }
 
             result = insert_realm(realm_data)
-
-            debug = result.get("debug", {})
-            status = debug.get("status", "Unknown")
-            payload = debug.get("payload", {})
-            raw = debug.get("raw", str(result))
-
-            if status == 201:
+            if result["debug"]["status"] == 201:
                 st.success("🎉 Realm created successfully!")
-                st.session_state["realm_shown"] = False  # Reset so dashboard loads again
+                st.session_state["realm_shown"] = False
                 show_dashboard(st.session_state['user_id'])
             else:
                 st.error("Something went wrong creating the realm.")
-                st.subheader("🔍 Debug Info")
-                st.code(f"Status: {status}", language="text")
-                st.text("Payload sent:")
-                st.json(payload)
-                st.text("Raw Response:")
-                st.code(raw, language="json")
+                st.json(result["debug"])

@@ -2,67 +2,57 @@ import streamlit as st
 import httpx
 from supabase_client import SUPABASE_URL, HEADERS
 
-def update_realm_state(user_id, update_data):
-    # Fetch realm ID
-    url_get = f"{SUPABASE_URL}/rest/v1/realms?user_id=eq.{user_id}&select=id,realm_state,traits"
-    res = httpx.get(url_get, headers=HEADERS)
-    realm = res.json()[0]
-    realm_id = realm['id']
-    current_state = realm['realm_state']
-    current_traits = realm['traits']
-
-    # Apply updates
-    new_state = current_state.copy()
-    new_traits = current_traits.copy()
-
-    if update_data.get("npc"):
-        new_state.setdefault("npc", []).append(update_data["npc"])
-
-    if update_data.get("trait"):
-        new_traits[update_data["trait"]] = True
-
-    # Save
-    url_patch = f"{SUPABASE_URL}/rest/v1/realms?id=eq.{realm_id}"
-    patch_body = {
-        "realm_state": new_state,
-        "traits": new_traits
+QUESTS = {
+    "village": {
+        "title": "The Flickering Orb",
+        "description": "A glowing orb floats over your village...",
+        "choices": {
+            "Investigate it": {"npc": {"name": "Watcher Orb", "type": "mystic"}, "reward": "Gained a mysterious NPC"},
+            "Speak to it": {"trait": "clever", "reward": "You feel smarter"},
+            "Ignore it": {"reward": "Nothing happened"}
+        }
+    },
+    "forest": {
+        "title": "Whispers in the Trees",
+        "description": "The trees seem to whisper secrets. What do you do?",
+        "choices": {
+            "Follow the whispers": {"trait": "curious", "reward": "Your curiosity grows"},
+            "Climb a tree": {"npc": {"name": "Tree Sprite", "type": "guide"}, "reward": "Gained a sprite friend"},
+            "Run away": {"reward": "You escaped safely"}
+        }
     }
+}
 
-    res = httpx.patch(url_patch, headers=HEADERS, json=patch_body)
-    return res.status_code == 204
+def run_quest(user_id, zone):
+    quest = QUESTS.get(zone.lower())
+    if not quest:
+        st.info("No quests available here yet.")
+        return
 
+    st.subheader(f"🧭 Quest: {quest['title']}")
+    st.markdown(quest['description'])
 
-def run_first_quest(user_id):
-    st.header("✨ Quest: The Flickering Orb")
-
-    st.markdown("""
-    A glowing orb appears in the sky above your realm.  
-    It pulses gently and seems to watch you. What will you do?
-    """)
-
-    choice = st.radio("Choose your action:", [
-        "🔍 Investigate the orb",
-        "💬 Try to speak to it",
-        "🚶 Walk away"
-    ])
+    choice = st.radio("What do you do?", list(quest["choices"].keys()))
 
     if st.button("Confirm Choice"):
-        result = True  # default
-        if choice == "🔍 Investigate the orb":
-            result = update_realm_state(user_id, {
-                "npc": {"name": "Watcher Orb", "type": "mystic"}
-            })
-            st.success("You investigate the orb. It merges into the realm, silently watching.")
-        elif choice == "💬 Try to speak to it":
-            result = update_realm_state(user_id, {
-                "trait": "clever"
-            })
-            st.success("You speak to the orb. It whispers riddles into your mind. You feel... smarter.")
-        elif choice == "🚶 Walk away":
-            st.info("You walk away. The orb vanishes.")
+        url_get = f"{SUPABASE_URL}/rest/v1/realms?user_id=eq.{user_id}&select=*"
+        res = httpx.get(url_get, headers=HEADERS)
+        realm = res.json()[0]
+        realm_id = realm["id"]
+        state = realm["realm_state"]
+        traits = realm["traits"]
 
-        if result:
-            st.balloons()
-            st.success("Your realm has been updated.")
-        else:
-            st.error("Failed to update your realm.")
+        outcome = quest["choices"][choice]
+
+        if "npc" in outcome:
+            state["npc"].append(outcome["npc"])
+        if "trait" in outcome:
+            traits[outcome["trait"]] = True
+        state["quests"].append(quest["title"])
+
+        # Save updates
+        patch_url = f"{SUPABASE_URL}/rest/v1/realms?id=eq.{realm_id}"
+        payload = {"realm_state": state, "traits": traits}
+        httpx.patch(patch_url, headers=HEADERS, json=payload)
+
+        st.success(outcome["reward"])

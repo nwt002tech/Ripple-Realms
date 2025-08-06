@@ -1,44 +1,45 @@
 import streamlit as st
 import httpx
 from supabase_client import SUPABASE_URL, HEADERS
+from quests import run_quest
+from zones import unlock_next_zone
 
 def fetch_realm_by_user(user_id):
     url = f"{SUPABASE_URL}/rest/v1/realms?user_id=eq.{user_id}&select=*"
     response = httpx.get(url, headers=HEADERS)
-    try:
-        return response.json()[0]
-    except:
-        return None
+    return response.json()[0] if response.status_code == 200 else None
 
 def show_dashboard(user_id):
     st.header("🏰 Your Realm")
 
     realm = fetch_realm_by_user(user_id)
-
     if not realm:
-        st.error("No realm found for this user.")
+        st.error("No realm found.")
         return
 
-    # Display zone
-    zone = realm["realm_state"].get("starting_zone", "unknown").capitalize()
+    zone = realm["realm_state"].get("zone", "unknown").capitalize()
     st.subheader(f"📍 Current Zone: {zone}")
 
-    # Traits
     st.markdown("### 💠 Traits")
     for trait, value in realm["traits"].items():
         if value:
             st.markdown(f"✅ {trait.capitalize()}")
 
-    # NPCs
-    st.markdown("### 👤 NPCs in Your Realm")
-    npcs = realm["realm_state"].get("npc", [])
-    if not npcs:
-        st.markdown("_No NPCs present yet_")
-    else:
-        for npc in npcs:
-            st.markdown(f"- {npc.get('name', 'Unknown')} ({npc.get('type', '')})")
+    st.markdown("### 👤 NPCs")
+    for npc in realm["realm_state"].get("npc", []):
+        st.markdown(f"- {npc['name']} ({npc['type']})")
 
-    # Continue
+    st.markdown("### 🗺️ Completed Quests")
+    completed = realm["realm_state"].get("quests", [])
+    if completed:
+        for q in completed:
+            st.markdown(f"- ✅ {q}")
+    else:
+        st.markdown("_None yet_")
+
     if st.button("➡️ Continue Adventure"):
-        from quests import run_first_quest
-        run_first_quest(user_id)
+        run_quest(user_id, zone)
+
+    if st.button("🗺️ Unlock Next Zone"):
+        unlock_next_zone(user_id)
+        st.experimental_rerun()

@@ -62,6 +62,12 @@ if "data" in result and isinstance(result["data"], list) and result["data"]:
     st.json(result["data"][0])
 else:
     st.error("Something went wrong creating the realm.")
+    
+    # Always show full debug
+    debug = result.get("debug", {})
     st.subheader("🔍 Debug Info")
-    st.code(result["debug"]["status"], language="text")
-    st.code(result["debug"]["raw"], language="json")
+    st.code(f"Status: {debug.get('status')}", language="text")
+    st.text("Payload sent:")
+    st.json(debug.get("payload"))
+    st.text("Raw Response:")
+    st.code(debug.get("raw"), language="json")

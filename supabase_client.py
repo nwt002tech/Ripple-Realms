@@ -42,15 +42,19 @@ def insert_user(user_id, email, display_name):
 
 def insert_realm(realm_data):
     url = f"{SUPABASE_URL}/rest/v1/realms"
-    response = httpx.post(url, headers=HEADERS, json=realm_data)
-
-    debug_info = {
-        "status": response.status_code,
-        "raw": response.text
-    }
-
     try:
-        data = response.json()
-        return {"data": data, "debug": debug_info}
-    except Exception:
-        return {"error": response.text, "debug": debug_info}
+        response = httpx.post(url, headers=HEADERS, json=realm_data)
+        debug_info = {
+            "status": response.status_code,
+            "url": url,
+            "payload": realm_data,
+            "raw": response.text
+        }
+
+        try:
+            return {"data": response.json(), "debug": debug_info}
+        except Exception:
+            return {"error": "Failed to parse JSON", "debug": debug_info}
+
+    except Exception as e:
+        return {"error": str(e), "debug": {"status": None, "error": str(e)}}

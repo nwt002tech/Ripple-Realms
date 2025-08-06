@@ -57,8 +57,11 @@ if st.session_state.get('signed_in'):
 
             result = insert_realm(realm_data)
 
-            if isinstance(result, list) and result:
-                st.success("🎉 Realm created successfully!")
-                st.json(result[0])
-            else:
-                st.error("Something went wrong creating the realm.")
+if "data" in result and isinstance(result["data"], list) and result["data"]:
+    st.success("🎉 Realm created successfully!")
+    st.json(result["data"][0])
+else:
+    st.error("Something went wrong creating the realm.")
+    st.subheader("🔍 Debug Info")
+    st.code(result["debug"]["status"], language="text")
+    st.code(result["debug"]["raw"], language="json")

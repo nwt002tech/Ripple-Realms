@@ -41,5 +41,6 @@ def show_dashboard(user_id):
         run_quest(user_id, zone)
 
     if st.button("🗺️ Unlock Next Zone"):
-        unlock_next_zone(user_id)
-        st.experimental_rerun()
+    unlock_next_zone(user_id)
+    st.session_state["realm_shown"] = False  # force reload of dashboard
+    st.success("Zone unlocked! Refreshing...")

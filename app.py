@@ -64,11 +64,11 @@ if st.session_state.get('signed_in'):
             payload = debug.get("payload", {})
             raw = debug.get("raw", str(result))
 
-            if isinstance(result.get("data"), list) and result["data"]:
-                st.success("🎉 Realm created successfully!")
-                st.json(result["data"][0])
-            else:
-                st.error("Something went wrong creating the realm.")
+            if result.get("debug", {}).get("status") == 201:
+    st.success("🎉 Realm created successfully!")
+    st.json(result.get("debug", {}).get("payload"))
+else:
+    st.error("Something went wrong creating the realm.")
                 st.subheader("🔍 Debug Info")
                 st.code(f"Status: {status}", language="text")
                 st.text("Payload sent:")

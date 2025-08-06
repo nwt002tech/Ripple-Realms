@@ -6,6 +6,7 @@ from dashboard import show_dashboard
 st.set_page_config(page_title="Ripple Realms", layout="centered")
 st.title("🌍 Ripple Realms")
 
+# --- Login ---
 email = st.text_input("Enter your email")
 display_name = st.text_input("Choose a display name")
 
@@ -29,6 +30,7 @@ if st.button("Start Game"):
             'realm_shown': False
         })
 
+# --- Realm Flow ---
 if st.session_state.get('signed_in'):
     if not st.session_state.get('realm_shown'):
         show_dashboard(st.session_state["user_id"])

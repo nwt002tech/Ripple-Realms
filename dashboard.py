@@ -4,10 +4,12 @@ from supabase_client import SUPABASE_URL, HEADERS
 from quests import run_quest
 from zones import unlock_next_zone
 
+
 def fetch_realm_by_user(user_id):
     url = f"{SUPABASE_URL}/rest/v1/realms?user_id=eq.{user_id}&select=*"
     response = httpx.get(url, headers=HEADERS)
     return response.json()[0] if response.status_code == 200 else None
+
 
 def show_dashboard(user_id):
     st.header("🏰 Your Realm")
@@ -19,6 +21,7 @@ def show_dashboard(user_id):
 
     zone = realm["realm_state"].get("zone", "unknown").capitalize()
     st.subheader(f"📍 Current Zone: {zone}")
+    st.caption("Complete quests to unlock the next zone!")
 
     st.markdown("### 💠 Traits")
     for trait, value in realm["traits"].items():
@@ -41,6 +44,6 @@ def show_dashboard(user_id):
         run_quest(user_id, zone)
 
     if st.button("🗺️ Unlock Next Zone"):
-    unlock_next_zone(user_id)
-    st.session_state["realm_shown"] = False  # force reload of dashboard
-    st.success("Zone unlocked! Refreshing...")
+        unlock_next_zone(user_id)
+        st.session_state["realm_shown"] = False  # safe trigger for refresh
+        st.success("Zone unlocked! Click any button to refresh view.")

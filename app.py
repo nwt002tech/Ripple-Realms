@@ -64,7 +64,7 @@ if st.session_state.get('signed_in'):
             payload = debug.get("payload", {})
             raw = debug.get("raw", str(result))
 
-            if result.get("debug", {}).get("status") == 201:
+				if result.get("debug", {}).get("status") == 201:
 					st.success("🎉 Realm created successfully!")
 					st.json(result.get("debug", {}).get("payload"))
 				else:

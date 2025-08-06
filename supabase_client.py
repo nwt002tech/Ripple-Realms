@@ -44,10 +44,13 @@ def insert_realm(realm_data):
     url = f"{SUPABASE_URL}/rest/v1/realms"
     response = httpx.post(url, headers=HEADERS, json=realm_data)
 
-    print("🗺️ Insert Realm Status:", response.status_code)
-    print("🌐 Insert Realm Response:", response.text)
+    debug_info = {
+        "status": response.status_code,
+        "raw": response.text
+    }
 
     try:
-        return response.json()
+        data = response.json()
+        return {"data": data, "debug": debug_info}
     except Exception:
-        return {"error": response.text}
+        return {"error": response.text, "debug": debug_info}

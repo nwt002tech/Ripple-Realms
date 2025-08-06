@@ -10,7 +10,6 @@ def fetch_realm_by_user(user_id):
     except:
         return None
 
-
 def show_dashboard(user_id):
     st.header("🏰 Your Realm")
 
@@ -41,4 +40,5 @@ def show_dashboard(user_id):
 
     # Continue
     if st.button("➡️ Continue Adventure"):
-        st.success("This is where your next quest begins... (Coming next!)")
+        from quests import run_first_quest
+        run_first_quest(user_id)

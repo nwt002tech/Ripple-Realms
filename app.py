@@ -30,12 +30,17 @@ if st.button("Start Game"):
         st.session_state['user_id'] = user_id
         st.session_state['display_name'] = display_name
         st.session_state['signed_in'] = True
+        st.session_state['realm_shown'] = False
 
 # ---------------------------
 # Realm Creation
 # ---------------------------
 if st.session_state.get('signed_in'):
-    st.header("🧙 Choose Your Realm")
+    if not st.session_state.get('realm_shown'):
+        show_dashboard(st.session_state["user_id"])
+        st.session_state["realm_shown"] = True
+
+    st.header("🧙 Create a New Realm")
 
     realm_type = st.selectbox("Realm Type", ["Forest", "Tech", "Shadow", "Fantasy"])
     traits = st.multiselect("Pick 3 traits", ["Kind", "Bold", "Curious", "Mysterious", "Clever"])
@@ -57,15 +62,14 @@ if st.session_state.get('signed_in'):
 
             result = insert_realm(realm_data)
 
-            # Debug data
             debug = result.get("debug", {})
             status = debug.get("status", "Unknown")
             payload = debug.get("payload", {})
             raw = debug.get("raw", str(result))
 
-            if result.get("debug", {}).get("status") == 201:
+            if status == 201:
                 st.success("🎉 Realm created successfully!")
-                from dashboard import show_dashboard
+                st.session_state["realm_shown"] = False  # Reset so dashboard loads again
                 show_dashboard(st.session_state['user_id'])
             else:
                 st.error("Something went wrong creating the realm.")
@@ -75,7 +79,3 @@ if st.session_state.get('signed_in'):
                 st.json(payload)
                 st.text("Raw Response:")
                 st.code(raw, language="json")
-
-if st.session_state.get("signed_in") and not st.session_state.get("realm_shown"):
-    show_dashboard(st.session_state["user_id"])
-    st.session_state["realm_shown"] = True

@@ -1,13 +1,12 @@
 import streamlit as st
 import uuid
-import json
 from supabase_client import get_user_by_email, insert_user, insert_realm
 
 st.set_page_config(page_title="Ripple Realms", layout="centered")
 st.title("🌍 Ripple Realms")
 
 # ---------------------------
-# Authentication (demo login)
+# Login / Signup
 # ---------------------------
 st.subheader("Login or Sign Up")
 
@@ -55,23 +54,22 @@ if st.session_state.get('signed_in'):
                 "realm_state": {"starting_zone": "village", "npc": []}
             }
 
-            # ✅ Safe call
             result = insert_realm(realm_data)
 
-            # ✅ Show debug always
+            # Debug data
             debug = result.get("debug", {})
             status = debug.get("status", "Unknown")
             payload = debug.get("payload", {})
             raw = debug.get("raw", str(result))
 
-				if result.get("debug", {}).get("status") == 201:
-					st.success("🎉 Realm created successfully!")
-					st.json(result.get("debug", {}).get("payload"))
-				else:
-					st.error("Something went wrong creating the realm.")
-					st.subheader("🔍 Debug Info")
-					st.code(f"Status: {status}", language="text")
-					st.text("Payload sent:")
-					st.json(payload)
-					st.text("Raw Response:")
-					st.code(raw, language="json")
+            if result.get("debug", {}).get("status") == 201:
+                st.success("🎉 Realm created successfully!")
+                st.json(result.get("debug", {}).get("payload"))
+            else:
+                st.error("Something went wrong creating the realm.")
+                st.subheader("🔍 Debug Info")
+                st.code(f"Status: {status}", language="text")
+                st.text("Payload sent:")
+                st.json(payload)
+                st.text("Raw Response:")
+                st.code(raw, language="json")

@@ -48,12 +48,12 @@ if st.session_state.get('signed_in'):
             realm_id = str(uuid.uuid4())
 
             realm_data = {
-                "id": realm_id,
-                "user_id": st.session_state['user_id'],
-                "realm_type": realm_type,
-                "traits": json.dumps(trait_dict),
-                "realm_state": json.dumps({"starting_zone": "village", "npc": []})
-            }
+    "id": realm_id,
+    "user_id": st.session_state['user_id'],
+    "realm_type": realm_type,
+    "traits": trait_dict,  # native dict
+    "realm_state": {"starting_zone": "village", "npc": []}  # native dict
+}
 
             result = insert_realm(realm_data)
 

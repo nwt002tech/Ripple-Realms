@@ -1,6 +1,7 @@
 import streamlit as st
 import uuid
 from supabase_client import get_user_by_email, insert_user, insert_realm
+from dashboard import show_dashboard
 
 st.set_page_config(page_title="Ripple Realms", layout="centered")
 st.title("🌍 Ripple Realms")
@@ -64,7 +65,8 @@ if st.session_state.get('signed_in'):
 
             if result.get("debug", {}).get("status") == 201:
                 st.success("🎉 Realm created successfully!")
-                st.json(result.get("debug", {}).get("payload"))
+                from dashboard import show_dashboard
+                show_dashboard(st.session_state['user_id'])
             else:
                 st.error("Something went wrong creating the realm.")
                 st.subheader("🔍 Debug Info")
@@ -73,3 +75,7 @@ if st.session_state.get('signed_in'):
                 st.json(payload)
                 st.text("Raw Response:")
                 st.code(raw, language="json")
+
+if st.session_state.get("signed_in") and not st.session_state.get("realm_shown"):
+    show_dashboard(st.session_state["user_id"])
+    st.session_state["realm_shown"] = True

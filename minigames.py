@@ -72,42 +72,35 @@ def unscramble_game(words: List[str], key_prefix: str) -> Optional[bool]:
 
 
 def reflex_game(key_prefix: str) -> Optional[bool]:
-    """Run a reflex test game.
+    """Run a simplified reflex test game.
 
-    The player clicks a "Start" button to begin.  After a random delay
-    between 1 and 3 seconds a "Click now!" button appears.  The time
-    between the appearance of the second button and the player's click
-    is measured.  The game returns ``True`` if the reaction time is
-    under one second, ``False`` otherwise.  ``None`` is returned if
-    the game has not completed yet.
+    The player clicks a "Start" button to begin.  Immediately after
+    starting a "Click now!" button appears.  The elapsed time between
+    the start and click is measured.  The game returns ``True`` if
+    the reaction time is under one second, ``False`` otherwise.
+    ``None`` is returned if the game has not completed yet.
+    
+    The original version of this minigame relied on
+    ``st.experimental_rerun`` to swap between stages after a random
+    delay.  Because ``experimental_rerun`` is deprecated in newer
+    versions of Streamlit, this simplified version measures reaction
+    time directly without a random delay.
     """
     stage_key = f"{key_prefix}_stage"
     if stage_key not in st.session_state:
         st.session_state[stage_key] = "ready"
     stage = st.session_state[stage_key]
-
     if stage == "ready":
         if st.button("Start Reflex Challenge", key=f"{key_prefix}_start"):
-            # Move to waiting stage; store start time and random delay
-            st.session_state[stage_key] = "waiting"
-            st.session_state[f"{key_prefix}_start_time"] = time.perf_counter()
-            st.session_state[f"{key_prefix}_delay"] = random.uniform(1.0, 3.0)
-    elif stage == "waiting":
-        # Check if the random delay has passed
-        elapsed = time.perf_counter() - st.session_state.get(f"{key_prefix}_start_time", 0)
-        if elapsed >= st.session_state.get(f"{key_prefix}_delay", 0):
-            # Show the click now button
             st.session_state[stage_key] = "go"
-            st.session_state[f"{key_prefix}_go_time"] = time.perf_counter()
-            st.experimental_rerun()
-        else:
-            st.write("Get ready...")
+            st.session_state[f"{key_prefix}_start_time"] = time.perf_counter()
     elif stage == "go":
         if st.button("Click now!", key=f"{key_prefix}_click"):
-            reaction = time.perf_counter() - st.session_state.get(f"{key_prefix}_go_time", 0)
-            st.write(f"Your reaction time: {reaction:.3f} seconds")
-            # Reset stage for next time
+            reaction = time.perf_counter() - st.session_state.get(f"{key_prefix}_start_time", time.perf_counter())
+            # Reset stage for next round
             st.session_state[stage_key] = "ready"
+            # Provide user feedback
+            st.write(f"Your reaction time: {reaction:.3f} seconds")
             if reaction < 1.0:
                 st.success("Great reflexes!")
                 return True

@@ -139,5 +139,6 @@ def show_dashboard(user_id: str) -> None:
                 state["zone"] = new_zone
                 supabase_client.update_realm(realm)
                 st.success(f"You travel to the {new_zone.capitalize()}!")
-                # Force refresh of dashboard on next run
-                st.experimental_rerun()
+                # The Streamlit script will naturally rerun after this
+                # button callback, so the updated zone will be reflected
+                # on the next render without needing experimental_rerun.

@@ -355,6 +355,11 @@ def run_quest(user_id: str, zone: str, traits: Dict[str, Any]) -> None:
             return
         # If choice has a minigame
         if chosen.get("minigame"):
+            # Store the current quest details in session_state.  When
+            # the page reruns (which happens automatically after the
+            # button interaction), the top of run_quest will detect
+            # this state and present the appropriate minigame.  No
+            # explicit call to experimental_rerun is needed.
             st.session_state["current_quest"] = {
                 "quest_id": next_q["id"],
                 "zone": zone,
@@ -364,8 +369,7 @@ def run_quest(user_id: str, zone: str, traits: Dict[str, Any]) -> None:
                 "success_message": chosen.get("message"),
                 "failure_message": chosen.get("failure_message", "You failed the challenge."),
             }
-            # Rerun to show minigame interface
-            st.experimental_rerun()
+            return
         else:
             # Apply immediate effects
             _apply_effects_to_realm(realm, chosen.get("effects", {}))

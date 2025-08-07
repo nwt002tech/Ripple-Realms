@@ -32,13 +32,13 @@ def main() -> None:
     """Render the landing page and handle user login/registration.
 
     The landing page asks for the player's email and display name and
-    allows them to select an age mode (child, teen or adult).  Upon
-    submission the function checks if a user record already exists
-    for the given email.  If not, a new user is created and the
-    player is prompted to create a realm.  Otherwise the existing
-    realm is loaded.  The player's session state stores their user
-    ID and other information so that navigation between pages is
-    seamless.
+    allows them to select an age mode (child, teen or adult).  When
+    the user submits the form a new account is created if one does not
+    already exist.  Once signed in the player either creates a new
+    realm or proceeds directly to the dashboard.  This implementation
+    avoids the deprecated ``st.experimental_rerun`` call by
+    conditionally rendering the appropriate view based on session
+    variables.
     """
     st.title("🌊 Ripple Realms")
     st.write(
@@ -46,12 +46,26 @@ def main() -> None:
         "shapes your world. Create your hero, choose your destiny and watch your realm evolve."
     )
 
-    # If the user is already signed in, show the dashboard
+    # If already signed in, determine whether to show the dashboard or
+    # prompt for realm creation.  This branch will run on every
+    # execution once the session_state has been populated by the
+    # login/registration flow below.
     if st.session_state.get("signed_in"):
-        show_dashboard(st.session_state["user_id"])
-        return
+        user_id = st.session_state.get("user_id")
+        # If no user ID, reset sign‑in state and return to login
+        if not user_id:
+            st.session_state["signed_in"] = False
+        else:
+            # Determine if the user already has a realm
+            existing_realm = supabase_client.get_realm_by_user(user_id)
+            if existing_realm:
+                show_dashboard(user_id)
+            else:
+                create_realm_form(user_id)
+            return
 
-    # Collect player information
+    # Collect player information for a new session.  This form is
+    # displayed when the user is not yet signed in.
     st.subheader("Log In or Create an Account")
     email = st.text_input("Email")
     display_name = st.text_input("Display Name")
@@ -61,37 +75,30 @@ def main() -> None:
         if not email or not display_name:
             st.error("Please enter both an email and display name.")
         else:
-            # Check if user exists
+            # Look up existing user or create a new one
             user = supabase_client.get_user_by_email(email)
             if not user:
-                # Create new user
                 user_id = str(uuid.uuid4())
                 supabase_client.insert_user(user_id, email, display_name, age_mode)
                 st.success("Account created! Let's set up your realm.")
             else:
                 user_id = user["id"]
                 display_name = user.get("display_name", display_name)
-                st.success("Welcome back! Loading your realm...")
                 age_mode = user.get("age_mode", age_mode)
-            # Store in session
+                st.success("Welcome back! Loading your realm...")
+            # Persist login info in session_state
             st.session_state["user_id"] = user_id
             st.session_state["display_name"] = display_name
             st.session_state["age_mode"] = age_mode
             st.session_state["signed_in"] = True
-            # Check for realm
-            realm = supabase_client.get_realm_by_user(user_id)
-            if not realm:
-                # Prompt to create new realm
-                st.experimental_rerun()
+            # Decide what to display next on the same run
+            existing_realm = supabase_client.get_realm_by_user(user_id)
+            if existing_realm:
+                show_dashboard(user_id)
             else:
-                # Skip to dashboard
-                st.experimental_rerun()
+                create_realm_form(user_id)
 
-    # If the session indicates user is signed in but realm missing, show realm creation
-    if st.session_state.get("signed_in") and not supabase_client.get_realm_by_user(
-        st.session_state.get("user_id") or ""
-    ):
-        create_realm_form(st.session_state["user_id"])
+
 
 
 def create_realm_form(user_id: str) -> None:
@@ -147,9 +154,12 @@ def create_realm_form(user_id: str) -> None:
             }
             supabase_client.insert_realm(realm)
             st.success("Your realm has been created! Enjoy your adventure.")
-            # After creation jump to dashboard
+            # Mark the realm as created so the next render knows to show the dashboard
             st.session_state["realm_created"] = True
-            st.experimental_rerun()
+            # Immediately show the dashboard in the same run.  Avoid
+            # deprecated experimental_rerun by directly calling the
+            # dashboard function.
+            show_dashboard(user_id)
 
 
 if __name__ == "__main__":

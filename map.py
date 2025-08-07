@@ -1,6 +1,9 @@
 import streamlit as st
 
-from .zones import ZONE_ORDER
+try:
+    from .zones import ZONE_ORDER  # type: ignore
+except ImportError:
+    from zones import ZONE_ORDER  # type: ignore
 
 # Emoji representations for each zone.  These help players quickly
 # identify their progress on the map.

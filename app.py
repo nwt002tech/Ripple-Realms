@@ -15,8 +15,17 @@ from __future__ import annotations
 import uuid
 import streamlit as st
 
-from . import supabase_client
-from .dashboard import show_dashboard
+# When executed as a script (e.g. via ``streamlit run app.py``) the module
+# is not part of a package so relative imports won't work.  In that
+# scenario we fall back to absolute imports which assume all files
+# reside in the same directory.  When imported as part of the
+# ``ripple_realms_full_game`` package the relative imports are valid.
+try:
+    from . import supabase_client  # type: ignore
+    from .dashboard import show_dashboard  # type: ignore
+except ImportError:
+    import supabase_client  # type: ignore
+    from dashboard import show_dashboard  # type: ignore
 
 
 def main() -> None:

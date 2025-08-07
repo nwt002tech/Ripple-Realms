@@ -21,10 +21,19 @@ from typing import Optional
 import streamlit as st
 import httpx
 
-from . import supabase_client
-from .map import display_map
-from .quests import run_quest
-from .zones import next_zone, ZONE_ORDER
+# See ``app.py`` for explanation of these fallback imports.  When run
+# as part of a package, the relative imports work; otherwise absolute
+# imports are used.
+try:
+    from . import supabase_client  # type: ignore
+    from .map import display_map  # type: ignore
+    from .quests import run_quest  # type: ignore
+    from .zones import next_zone, ZONE_ORDER  # type: ignore
+except ImportError:
+    import supabase_client  # type: ignore
+    from map import display_map  # type: ignore
+    from quests import run_quest  # type: ignore
+    from zones import next_zone, ZONE_ORDER  # type: ignore
 
 
 def _load_image(path: str) -> Optional[str]:

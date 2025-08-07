@@ -25,9 +25,17 @@ import os
 import streamlit as st
 from typing import Any, Dict, List, Optional
 
-from . import supabase_client
-from .zones import ZONE_ORDER, next_zone
-from .minigames import unscramble_game, reflex_game, puzzle_game
+# See ``app.py`` for an explanation of these fallback imports.  When
+# running the script directly the relative imports will fail, so we
+# catch ImportError and perform absolute imports instead.
+try:
+    from . import supabase_client  # type: ignore
+    from .zones import ZONE_ORDER, next_zone  # type: ignore
+    from .minigames import unscramble_game, reflex_game, puzzle_game  # type: ignore
+except ImportError:
+    import supabase_client  # type: ignore
+    from zones import ZONE_ORDER, next_zone  # type: ignore
+    from minigames import unscramble_game, reflex_game, puzzle_game  # type: ignore
 
 
 # Definition of all quests available in the game.  Each zone key maps

@@ -12,7 +12,7 @@ def show_dashboard(user_id):
 
     zone_image = Path(f"assets/zones/{zone}.png")
     if zone_image.exists():
-        st.image(zone_image, use_column_width=True)
+        st.image(zone_image, use_container_width=True)
 
     st.write(f"🧭 Current Zone: **{zone.capitalize()}**")
 
